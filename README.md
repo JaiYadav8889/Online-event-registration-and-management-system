@@ -54,7 +54,7 @@ Protected routes use `Authorization: Bearer <token>`.
 
 ## Important production hardening still required
 
-- Registration capacity is checked before inserting a registration, but the count-and-insert sequence is not atomic under concurrent load. Before real high-volume use, implement a MongoDB transaction or atomic event seat counter with a replica set.
+- Registration uses an atomic event seat counter to prevent overselling under concurrent requests and compensates the counter if the registration insert fails. For strict crash-safe consistency, use a MongoDB transaction/replica set or add a reconciliation job for interrupted reservations.
 - Self-service organizer registration is open in this starter. Before institutional deployment, replace it with admin invitation/approval or a controlled organizer provisioning process.
 - Manual ticket-code check-in and browser camera-based QR scanning are available in the organizer interface. QR images are generated after registration; downloadable/email ticket delivery is not included yet. Camera scanning requires HTTPS (or localhost) and user permission.
 - Configure exact production CORS origins, HTTPS, backups, monitoring, and secure secret management. Never commit real environment files.
