@@ -20,7 +20,7 @@ router.post("/:eventId", async (req, res, next) => {
     const ticketCode = randomBytes(18).toString("hex");
     const qrDataUrl = await QRCode.toDataURL(ticketCode);
     const reservedEvent = await Event.findOneAndUpdate(
-      { _id: event._id, status: "published", $expr: { $lt: ["$registrationCount", "$capacity"] } },
+      { _id: event._id, status: "published", $expr: { $lt: [{ $ifNull: ["$registrationCount", 0] }, "$capacity"] } },
       { $inc: { registrationCount: 1 } },
       { new: true }
     );
