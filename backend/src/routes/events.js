@@ -51,6 +51,7 @@ router.patch("/:id", protect, organizerOnly, async (req, res, next) => {
     if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
     const current = await Event.findById(req.params.id);
     if (!current) return res.status(404).json({ message: "Event not found" });
+    if (String(current.createdBy) !== String(req.user.id) && req.user.role !== "admin") return res.status(403).json({ message: "You cannot manage this event" });
     Object.assign(current, parsed.data);
     if (current.endsAt <= current.startsAt) return res.status(400).json({ message: "End time must be after start time" });
     await current.save();
@@ -62,6 +63,7 @@ router.delete("/:id", protect, organizerOnly, async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: "Event not found" });
+    if (String(event.createdBy) !== String(req.user.id) && req.user.role !== "admin") return res.status(403).json({ message: "You cannot manage this event" });
     if (await Registration.exists({ event: event._id })) {
       event.status = "cancelled";
       await event.save();
