@@ -28,6 +28,9 @@ router.post("/:eventId", async (req, res, next) => {
 
 router.get("/manage/:eventId", protect, organizerOnly, async (req, res, next) => {
   try {
+    const event = await Event.findById(req.params.eventId);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    if (String(event.createdBy) !== String(req.user.id) && req.user.role !== "admin") return res.status(403).json({ message: "You cannot manage this event" });
     const registrations = await Registration.find({ event: req.params.eventId }).sort({ createdAt: -1 }).lean();
     res.json({ registrations });
   } catch (err) { next(err); }
@@ -37,15 +40,15 @@ router.post("/check-in", protect, organizerOnly, async (req, res, next) => {
   try {
     const parsed = z.object({ ticketCode: z.string().min(12).max(100) }).safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "A valid ticket code is required" });
+    const candidate = await Registration.findOne({ ticketCode: parsed.data.ticketCode }).populate("event", "createdBy");
+    if (!candidate) return res.status(404).json({ message: "Ticket not found" });
+    if (String(candidate.event.createdBy) !== String(req.user.id) && req.user.role !== "admin") return res.status(403).json({ message: "You cannot check in attendees for this event" });
     const registration = await Registration.findOneAndUpdate(
-      { ticketCode: parsed.data.ticketCode, checkedInAt: null },
+      { _id: candidate._id, checkedInAt: null },
       { $set: { checkedInAt: new Date(), checkedInBy: req.user.id } },
       { new: true }
     );
-    if (!registration) {
-      const existing = await Registration.findOne({ ticketCode: parsed.data.ticketCode });
-      return res.status(existing ? 409 : 404).json({ message: existing ? "Ticket has already been checked in" : "Ticket not found" });
-    }
+    if (!registration) return res.status(409).json({ message: "Ticket has already been checked in" });
     res.json({ message: "Check-in successful", registration });
   } catch (err) { next(err); }
 });
