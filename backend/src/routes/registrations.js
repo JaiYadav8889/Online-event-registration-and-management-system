@@ -17,11 +17,21 @@ router.post("/:eventId", async (req, res, next) => {
     if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
     const event = await Event.findById(req.params.eventId);
     if (!event || event.status !== "published") return res.status(404).json({ message: "Event is not available" });
-    const registeredCount = await Registration.countDocuments({ event: event._id });
-    if (registeredCount >= event.capacity) return res.status(409).json({ message: "This event is full" });
     const ticketCode = randomBytes(18).toString("hex");
-    const registration = await Registration.create({ event: event._id, ...parsed.data, ticketCode });
     const qrDataUrl = await QRCode.toDataURL(ticketCode);
+    const reservedEvent = await Event.findOneAndUpdate(
+      { _id: event._id, status: "published", $expr: { $lt: ["$registrationCount", "$capacity"] } },
+      { $inc: { registrationCount: 1 } },
+      { new: true }
+    );
+    if (!reservedEvent) return res.status(409).json({ message: "This event is full or no longer accepting registrations" });
+    let registration;
+    try {
+      registration = await Registration.create({ event: event._id, ...parsed.data, ticketCode });
+    } catch (error) {
+      await Event.updateOne({ _id: event._id }, { $inc: { registrationCount: -1 } });
+      throw error;
+    }
     res.status(201).json({ registration: { id: registration.id, participantName: registration.participantName, email: registration.email, ticketCode, qrDataUrl } });
   } catch (err) { next(err); }
 });
