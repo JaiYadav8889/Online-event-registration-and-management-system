@@ -1,0 +1,21 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import authRoutes from "./routes/auth.js";
+import eventRoutes from "./routes/events.js";
+import registrationRoutes from "./routes/registrations.js";
+import { notFound, errorHandler } from "./middleware/errors.js";
+
+const app = express();
+app.use(helmet());
+app.use(cors({ origin: process.env.CLIENT_URL?.split(",") || "http://localhost:5173" }));
+app.use(express.json({ limit: "1mb" }));
+app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: "draft-7", legacyHeaders: false }));
+app.get("/api/health", (req, res) => res.json({ status: "ok", service: "oerms-api" }));
+app.use("/api/auth", rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: "draft-7", legacyHeaders: false }), authRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/registrations", registrationRoutes);
+app.use(notFound);
+app.use(errorHandler);
+export default app;

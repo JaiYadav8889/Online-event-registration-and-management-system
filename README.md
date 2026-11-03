@@ -1,41 +1,72 @@
 # Online Event Registration and Management System (OERMS)
 
-A full-stack platform for managing college events, student registrations, and attendance.
+A responsive full-stack campus event platform for publishing events, collecting student registrations, issuing QR tickets, and managing attendance.
 
-## Project status
+## Features implemented in this foundation
 
-Repository documentation and initial setup are in progress. Features will be delivered in documented stages; functionality will be marked complete only after implementation and verification.
+- Responsive React + Vite public event discovery experience.
+- Express REST API backed by MongoDB/Mongoose.
+- Organizer sign-up/sign-in, bcrypt password hashing, JWT authentication.
+- Event publishing, editing, public listing, and safe cancellation/deletion.
+- Student registration with validation, duplicate email protection per event, and capacity checks.
+- Cryptographically random ticket codes and QR code generation.
+- Organizer attendee list and single-use check-in API with manual ticket-code entry or camera-based QR scanning.
+- Event-owner authorization checks for editing, deleting, attendee listing, and check-in.
+- Organizer event management view with registration/check-in status.
+- Helmet security headers, configurable CORS, request-size limit, API rate limiting, Zod validation, and centralized API errors.
 
-## Planned technology stack
+## Requirements
 
-- Frontend: React + Vite
-- Backend: Node.js + Express
-- Database: MongoDB + Mongoose
-- Authentication: JWT and bcrypt
-- Testing: automated backend and frontend checks
+- Node.js 20+
+- npm 10+
+- MongoDB local instance or MongoDB Atlas
 
-## Planned capabilities
+## Run locally
 
-- Organizer/admin authentication and role-based access
-- Event creation, editing, scheduling, capacity, and status management
-- Public event discovery and student registration
-- Duplicate-registration and capacity validation
-- Unique registration tickets with QR codes
-- QR-based and manual attendance check-in
-- Organizer dashboard, participant management, and registration statistics
+1. From the repository root, install dependencies: `npm install`.
+2. Copy `backend/.env.example` to `backend/.env`.
+3. Set `MONGODB_URI` and a private random `JWT_SECRET` of at least 32 characters.
+4. Run both applications from the root: `npm run dev`.
+5. Open the frontend at http://localhost:5173.
+6. API health endpoint: http://localhost:5000/api/health.
 
-## Development principles
+Optional frontend API override: create `frontend/.env` with `VITE_API_URL=http://localhost:5000/api`.
 
-- Validate inputs on both client and server.
-- Enforce authorization on protected API routes.
-- Keep secrets in environment variables; never commit real credentials.
-- Test critical registration and check-in flows, including duplicate and concurrent requests.
-- Document setup, environment variables, API routes, and known limitations.
+## API
 
-## Local development
+| Method | Endpoint | Access | Purpose |
+|---|---|---|---|
+| GET | /api/health | Public | API health |
+| POST | /api/auth/register | Public | Organizer account |
+| POST | /api/auth/login | Public | Organizer login |
+| GET | /api/auth/me | Organizer | Current account |
+| GET | /api/events | Public | Published events |
+| GET | /api/events/:id | Public | Event details |
+| POST | /api/events | Organizer | Create event |
+| PATCH | /api/events/:id | Organizer | Update event |
+| DELETE | /api/events/:id | Organizer | Delete or cancel event |
+| POST | /api/registrations/:eventId | Public | Student registration |
+| GET | /api/registrations/manage/:eventId | Organizer | Attendee list |
+| POST | /api/registrations/check-in | Organizer | Single-use ticket check-in |
+| GET | /api/registrations/ticket/:ticketCode | Public | Ticket summary |
 
-Setup instructions will be added with the application scaffold and environment templates.
+Protected routes use `Authorization: Bearer <token>`.
 
-## Attribution and reuse
+## Important production hardening still required
 
-This project uses the Event Registration & Smart Check-in Platform repository as a reference: https://github.com/Priyanka170974/Event-Registration-Smart-Checkin. Any adapted material will retain applicable attribution and license notices. No license is inferred from the reference README; reuse must comply with the source repository's actual permissions and applicable terms.
+- Registration uses an atomic event seat counter to prevent overselling under concurrent requests and compensates the counter if the registration insert fails. For strict crash-safe consistency, use a MongoDB transaction/replica set or add a reconciliation job for interrupted reservations.
+- Self-service organizer registration is open in this starter. Before institutional deployment, replace it with admin invitation/approval or a controlled organizer provisioning process.
+- Manual ticket-code check-in and browser camera-based QR scanning are available in the organizer interface. QR images are generated after registration; downloadable/email ticket delivery is not included yet. Camera scanning requires HTTPS (or localhost) and user permission.
+- Configure exact production CORS origins, HTTPS, backups, monitoring, and secure secret management. Never commit real environment files.
+- Ensure MongoDB indexes are built before opening registration traffic.
+
+## Verification
+
+- Backend unit and MongoDB-backed API integration tests: `npm test` (the CI workflow provisions MongoDB).
+- Frontend production build: `npm run build`
+
+A GitHub commit is not proof that commands have passed. Run these in a Node 20+ environment with dependencies installed; configure MongoDB to exercise database-backed API flows.
+
+## Attribution
+
+Reference consulted: https://github.com/Priyanka170974/Event-Registration-Smart-Checkin. Any adapted source must retain applicable notices and comply with the source repository's actual license and permissions. This project does not claim that reference material has been relicensed or that all referenced ideas/code are original.
