@@ -5,7 +5,7 @@ import Registration from "../models/Registration.js";
 import { protect, organizerOnly } from "../middleware/auth.js";
 
 const router = Router();
-const eventInput = z.object({
+const eventFields = z.object({
   title: z.string().trim().min(3).max(120),
   description: z.string().max(3000).optional().default(""),
   venue: z.string().trim().min(2).max(180),
@@ -13,7 +13,8 @@ const eventInput = z.object({
   endsAt: z.coerce.date(),
   capacity: z.coerce.number().int().min(1).max(100000),
   status: z.enum(["draft", "published", "cancelled"]).optional()
-}).refine(v => v.endsAt > v.startsAt, { message: "End time must be after start time" });
+});
+const eventInput = eventFields.refine(v => v.endsAt > v.startsAt, { message: "End time must be after start time" });
 
 router.get("/", async (req, res, next) => {
   try {
@@ -46,7 +47,7 @@ router.post("/", protect, organizerOnly, async (req, res, next) => {
 
 router.patch("/:id", protect, organizerOnly, async (req, res, next) => {
   try {
-    const parsed = eventInput.partial().safeParse(req.body);
+    const parsed = eventFields.partial().safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
     const current = await Event.findById(req.params.id);
     if (!current) return res.status(404).json({ message: "Event not found" });
