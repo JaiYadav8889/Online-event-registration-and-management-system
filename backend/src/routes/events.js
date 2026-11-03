@@ -52,6 +52,7 @@ router.patch("/:id", protect, organizerOnly, async (req, res, next) => {
     const current = await Event.findById(req.params.id);
     if (!current) return res.status(404).json({ message: "Event not found" });
     if (String(current.createdBy) !== String(req.user.id) && req.user.role !== "admin") return res.status(403).json({ message: "You cannot manage this event" });
+    if (parsed.data.capacity !== undefined && parsed.data.capacity < (current.registrationCount || 0)) return res.status(400).json({ message: "Capacity cannot be lower than the number of existing registrations" });
     Object.assign(current, parsed.data);
     if (current.endsAt <= current.startsAt) return res.status(400).json({ message: "End time must be after start time" });
     await current.save();
