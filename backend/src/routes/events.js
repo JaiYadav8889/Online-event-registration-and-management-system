@@ -18,8 +18,7 @@ const eventInput = eventFields.refine(v => v.endsAt > v.startsAt, { message: "En
 
 router.get("/", async (req, res, next) => {
   try {
-    const filter = req.query.all === "true" ? {} : { status: "published" };
-    const events = await Event.find(filter).sort({ startsAt: 1 }).lean();
+    const events = await Event.find({ status: "published" }).sort({ startsAt: 1 }).lean();
     const ids = events.map(e => e._id);
     const counts = await Registration.aggregate([{ $match: { event: { $in: ids } } }, { $group: { _id: "$event", count: { $sum: 1 } } }]);
     const countMap = new Map(counts.map(c => [String(c._id), c.count]));
