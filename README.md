@@ -10,7 +10,7 @@ A responsive full-stack campus event platform for publishing events, collecting 
 - Event publishing, editing, public listing, and safe cancellation/deletion.
 - Student registration with validation, duplicate email protection per event, and capacity checks.
 - Cryptographically random ticket codes and QR code generation.
-- Organizer attendee list and single-use check-in API with manual ticket-code entry.
+- Organizer attendee list and single-use check-in API with manual ticket-code entry or camera-based QR scanning.
 - Event-owner authorization checks for editing, deleting, attendee listing, and check-in.
 - Organizer event management view with registration/check-in status.
 - Helmet security headers, configurable CORS, request-size limit, API rate limiting, Zod validation, and centralized API errors.
@@ -56,7 +56,7 @@ Protected routes use `Authorization: Bearer <token>`.
 
 - Registration capacity is checked before inserting a registration, but the count-and-insert sequence is not atomic under concurrent load. Before real high-volume use, implement a MongoDB transaction or atomic event seat counter with a replica set.
 - Self-service organizer registration is open in this starter. Before institutional deployment, replace it with admin invitation/approval or a controlled organizer provisioning process.
-- Manual ticket-code check-in is available in the organizer interface and the QR image is generated for each attendee. A camera-based QR scanner and downloadable/email ticket delivery are not included yet.
+- Manual ticket-code check-in and browser camera-based QR scanning are available in the organizer interface. QR images are generated after registration; downloadable/email ticket delivery is not included yet. Camera scanning requires HTTPS (or localhost) and user permission.
 - Configure exact production CORS origins, HTTPS, backups, monitoring, and secure secret management. Never commit real environment files.
 - Ensure MongoDB indexes are built before opening registration traffic.
 
