@@ -4,6 +4,7 @@ import { api } from "./api";
 import QrScanner from "./QrScanner";
 
 const formatDate = value => new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+const toLocalInput = value => { const d=new Date(value); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
 const blankEvent = { title:"", description:"", venue:"", startsAt:"", endsAt:"", capacity:100 };
 
 export default function App() {
@@ -23,7 +24,7 @@ export default function App() {
   const handleScannedCheckin=useCallback(async(code)=>{setBusy(true);setError("");try{const d=await api("/registrations/check-in",{method:"POST",body:JSON.stringify({ticketCode:code})});setNotice(d.message);if(manageEvent){const refreshed=await api("/registrations/manage/"+manageEvent._id);setRegistrations(refreshed.registrations||[]);}}catch(e){setError(e.message);}finally{setBusy(false);}},[manageEvent]);
   async function checkIn(e){e.preventDefault();setBusy(true);setError("");try{const d=await api("/registrations/check-in",{method:"POST",body:JSON.stringify({ticketCode})});setNotice(d.message);setTicketCode("");if(manageEvent)await openManage(manageEvent);}catch(x){setError(x.message);}finally{setBusy(false);}}
   async function cancelEvent(){if(!manageEvent)return;setBusy(true);try{const d=await api("/events/"+manageEvent._id,{method:"DELETE"});setNotice(d.message);setManageEvent(null);await load();}catch(e){setError(e.message);}finally{setBusy(false);}}
-  function startEdit(){if(!manageEvent)return;setForm({title:manageEvent.title,description:manageEvent.description||"",venue:manageEvent.venue,startsAt:new Date(manageEvent.startsAt).toISOString().slice(0,16),endsAt:new Date(manageEvent.endsAt).toISOString().slice(0,16),capacity:manageEvent.capacity});setEditingEvent(manageEvent);setManageEvent(null);setCreateOpen(true);}
+  function startEdit(){if(!manageEvent)return;setForm({title:manageEvent.title,description:manageEvent.description||"",venue:manageEvent.venue,startsAt:toLocalInput(manageEvent.startsAt),endsAt:toLocalInput(manageEvent.endsAt),capacity:manageEvent.capacity});setEditingEvent(manageEvent);setManageEvent(null);setCreateOpen(true);}
   function logout(){localStorage.removeItem("oerms_token");setUser(null);setNotice("Signed out.");}
   return <div className="shell">
     <header className="nav"><a className="brand" href="#"><span className="brand-icon"><CalendarDays/></span><span>oerms<span className="accent">.</span><small>CAMPUS EVENTS, CONNECTED</small></span></a><nav><a href="#discover">Discover</a><a href="#about">How it works</a>{user?<><button className="nav-cta" onClick={()=>setCreateOpen(true)}><Plus size={16}/> Create event</button><button className="plain" onClick={logout}><LogOut size={17}/></button></>:<button className="nav-cta" onClick={()=>setAuthOpen(true)}><LogIn size={16}/> Organizer login</button>}</nav></header>
