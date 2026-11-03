@@ -62,7 +62,7 @@ Protected routes use `Authorization: Bearer <token>`.
 
 ## Verification
 
-- Backend unit tests: `npm test`
+- Backend unit and MongoDB-backed API integration tests: `npm test` (the CI workflow provisions MongoDB).
 - Frontend production build: `npm run build`
 
 A GitHub commit is not proof that commands have passed. Run these in a Node 20+ environment with dependencies installed; configure MongoDB to exercise database-backed API flows.
