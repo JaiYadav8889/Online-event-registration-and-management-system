@@ -28,6 +28,8 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm install
+      - name: Audit dependencies for high-severity vulnerabilities
+        run: npm audit --audit-level=high
       - name: Run backend unit tests
         run: npm test
       - name: Build frontend
