@@ -13,7 +13,7 @@ app.use(cors({ origin: process.env.CLIENT_URL?.split(",") || "http://localhost:5
 app.use(express.json({ limit: "1mb" }));
 app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: "draft-7", legacyHeaders: false }));
 app.get("/api/health", (req, res) => res.json({ status: "ok", service: "oerms-api" }));
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: "draft-7", legacyHeaders: false }), authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/registrations", registrationRoutes);
 app.use(notFound);
