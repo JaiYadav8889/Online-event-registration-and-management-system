@@ -74,7 +74,3 @@ The following live demo belongs to the reference project consulted during develo
 https://event-registration-smart-checkin.vercel.app/
 
 OERMS itself is currently source-code/CI verified and still requires its own frontend and backend deployment before it has a live demo URL.
-
-## Attribution
-
-Reference consulted: https://github.com/Priyanka170974/Event-Registration-Smart-Checkin. Any adapted source must retain applicable notices and comply with the source repository's actual license and permissions. This project does not claim that reference material has been relicensed or that all referenced ideas/code are original.
