@@ -11,6 +11,7 @@ A responsive full-stack campus event platform for publishing events, collecting 
 - Student registration with validation, duplicate email protection per event, and capacity checks.
 - Cryptographically random ticket codes and QR code generation.
 - Organizer attendee list and single-use check-in API with manual ticket-code entry.
+- Event-owner authorization checks for editing, deleting, attendee listing, and check-in.
 - Organizer event management view with registration/check-in status.
 - Helmet security headers, configurable CORS, request-size limit, API rate limiting, Zod validation, and centralized API errors.
 
